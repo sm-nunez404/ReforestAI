@@ -16,7 +16,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { DrawnArea } from '@/types/map';
 import AreaForm from './AreaForm';
 
-function MapToolbarContent() {
+interface MapToolbarProps {
+  onNewArea: (newArea: any) => void;
+}
+
+function MapToolbarContent({ onNewArea }: MapToolbarProps) {
   const map = useMap();
   const [activeMode, setActiveMode] = useState<string | null>(null);
   const [drawnItems, setDrawnItems] = useState<L.FeatureGroup | null>(null);
@@ -306,18 +310,18 @@ function MapToolbarContent() {
     setDrawnAreas(prev => [...prev, newArea]);
     
     if (drawnItems && tempLayer) {
-      // Crear y vincular el popup
       const popup = L.popup()
         .setContent(createPopupContent(newArea));
       
       tempLayer.bindPopup(popup);
       drawnItems.addLayer(tempLayer);
       
-      // Abrir el popup inmediatamente
-      tempLayer.openPopup();
-      
       // Centrar el mapa en el área dibujada
-      map.fitBounds(tempLayer.getBounds());
+      if ('getBounds' in tempLayer) {
+        map.fitBounds(tempLayer.getBounds());
+      } else if (tempLayer instanceof L.Circle) {
+        map.fitBounds(tempLayer.getBounds());
+      }
     }
 
     // Mostrar notificación de éxito
@@ -414,6 +418,6 @@ function MapToolbarContent() {
   );
 }
 
-export default function MapToolbar() {
-  return <MapToolbarContent />;
+export default function MapToolbar({ onNewArea }: MapToolbarProps) {
+  return <MapToolbarContent onNewArea={onNewArea} />;
 }

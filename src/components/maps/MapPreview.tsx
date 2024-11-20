@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polygon, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useMap as useMapStore } from '@/lib/hooks/useMap';
 import MapControls from './MapControls';
@@ -133,9 +133,32 @@ function MapController() {
   return null;
 }
 
+function MapClickHandler({ onMapClick }: { onMapClick: (e: L.LeafletMouseEvent) => void }) {
+  useMapEvents({
+    click: onMapClick
+  });
+  return null;
+}
+
 interface MapPreviewProps {
   center?: [number, number]
   zoom?: number
+}
+
+interface MisionActual {
+  tipo: string;
+  progreso: number;
+}
+
+interface Drone {
+  id: string;
+  nombre: string;
+  estado: string;
+  bateria: number;
+  semillasRestantes: number;
+  capacidadSemillas: number;
+  ubicacion: { lat: number; lng: number };
+  misionActual: MisionActual | undefined;
 }
 
 export default function MapPreview({ 
@@ -213,10 +236,9 @@ export default function MapPreview({
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
-        eventHandlers={{
-          click: handleMapClick
-        }}
       >
+        <MapClickHandler onMapClick={handleMapClick} />
+        
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
